@@ -14,6 +14,32 @@ app.use(cors());
 
 app.use(express.json());
 
+// Prepare a reusable mail transporter (configure via environment variables)
+// Required envs: GMAIL_USER, GMAIL_APP_PASSWORD
+const mailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER || '',
+    pass: process.env.GMAIL_APP_PASSWORD || '',
+  },
+});
+
+async function sendMail({ to, subject, html }) {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    throw new Error('Email credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+  }
+  const mailOptions = {
+    from: {
+      name: 'District Magistrate Office, Ayodhya',
+      address: process.env.GMAIL_USER,
+    },
+    to,
+    subject,
+    html,
+  };
+  return mailTransporter.sendMail(mailOptions);
+}
+
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -617,8 +643,31 @@ app.post('/email-reminders', async (req, res) => {
       lastReminderSent: new Date()
     });
     
-    // TODO: Integrate with actual email service (SendGrid, AWS SES, etc.)
-    console.log(`Email reminder sent for case ${caseId} to ${email}`);
+    // Send actual email using configured transporter
+    const subject = `Reminder: Action Required for Case ${caseData.caseNumber || caseData._id}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+        <p>Dear Department,</p>
+        <p>This is a reminder regarding the following case:</p>
+        <ul>
+          <li><strong>Case Number:</strong> ${caseData.caseNumber || 'N/A'}</li>
+          <li><strong>Petitioner:</strong> ${caseData.petitionername}</li>
+          <li><strong>Respondent:</strong> ${caseData.respondentname}</li>
+          <li><strong>Filing Date:</strong> ${caseData.filingDate ? new Date(caseData.filingDate).toLocaleDateString() : 'N/A'}</li>
+          <li><strong>Status:</strong> ${caseData.status}</li>
+        </ul>
+        <p>Please review and take the necessary action.</p>
+        <p>Regards,<br/>District Magistrate Office, Ayodhya</p>
+      </div>
+    `;
+
+    try {
+      const info = await sendMail({ to: email, subject, html });
+      console.log(`Email reminder sent for case ${caseId} to ${email} messageId=${info && info.messageId}`);
+    } catch (mailErr) {
+      console.error('Failed to send email via transporter:', mailErr && mailErr.message);
+      return res.status(500).json({ error: 'Failed to send email via transporter', details: mailErr && mailErr.message });
+    }
     
     res.status(201).json({
       message: 'Email reminder sent successfully',
