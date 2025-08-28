@@ -49,7 +49,7 @@ interface NoticeWriterProps {
   caseId?: string;
 }
 
-const API_BASE = "https://jansunwayi-portal-ayodhya.onrender.com/"
+const API_BASE = (import.meta as any)?.env?.VITE_API_BASE || "https://ayodhya-court-main.onrender.com"
 
 const printStyles = `
   @media print {
@@ -129,7 +129,7 @@ export default function CourtNoticeWriter({ caseId }: NoticeWriterProps) {
       // Generate HTML content for email
       const emailHtml = generateEmailHTML()
 
-      const response = await fetch("/api/send-email", {
+      const response = await fetch(`${API_BASE}/send-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

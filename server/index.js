@@ -191,29 +191,8 @@ app.post('/send-email', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: to, subject, html' });
     }
 
-    // Create transporter with Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: "jrkwrit53@gmail.com", // Your Gmail address
-        pass: "bqvd jtyv dilm pnnr", // Your Gmail App Password
-      },
-    });
-
-    // Email options
-    const mailOptions = {
-      from: {
-        name: 'District Magistrate Office, Ayodhya',
-        address: process.env.GMAIL_USER || '',
-      },
-      to: to,
-      subject: subject,
-      html: html,
-      attachments: [], // You can add PDF attachments here if needed
-    };
-
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
+    // Send using reusable transporter with env credentials
+    const info = await sendMail({ to, subject, html });
 
     return res.status(200).json({
       success: true,
