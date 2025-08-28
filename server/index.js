@@ -26,7 +26,10 @@ const mailTransporter = nodemailer.createTransport({
 
 async function sendMail({ to, subject, html }) {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    throw new Error('Email credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+    const msg = 'Email credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.';
+    const err = new Error(msg);
+    err.code = 'EMAIL_CONFIG_MISSING';
+    throw err;
   }
   const mailOptions = {
     from: {
@@ -39,6 +42,26 @@ async function sendMail({ to, subject, html }) {
   };
   return mailTransporter.sendMail(mailOptions);
 }
+
+// Quick email configuration status endpoint
+app.get('/email-config/status', async (req, res) => {
+  try {
+    const hasUser = !!process.env.GMAIL_USER;
+    const hasPass = !!process.env.GMAIL_APP_PASSWORD;
+    if (!hasUser || !hasPass) {
+      return res.status(200).json({ configured: false, hasUser, hasPass });
+    }
+    // Optional transporter verification (may fail on some hosts but useful if available)
+    try {
+      await mailTransporter.verify();
+      return res.status(200).json({ configured: true, verified: true });
+    } catch (e) {
+      return res.status(200).json({ configured: true, verified: false, reason: e && e.message });
+    }
+  } catch (e) {
+    return res.status(500).json({ configured: false, error: e && e.message });
+  }
+});
 
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
@@ -200,11 +223,11 @@ app.post('/send-email', async (req, res) => {
       message: 'Email sent successfully',
     });
   } catch (error) {
-    console.error('Email sending error:', error);
-    return res.status(500).json({
-      error: 'Failed to send email',
-      details: error instanceof Error ? error.message : 'Unknown error',
-    });
+    console.error('Email sending error:', error && error.message);
+    const message = error && error.message ? error.message : 'Failed to send email';
+    const code = error && error.code ? error.code : 'EMAIL_SEND_FAILED';
+    const status = code === 'EMAIL_CONFIG_MISSING' ? 400 : 500;
+    return res.status(status).json({ error: message, code });
   }
 });
 // Update case
