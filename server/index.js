@@ -175,15 +175,20 @@ app.get('/cases', async (req, res) => {
 });
 app.post('/send-email', async (req, res) => {
   try {
+    console.log('📧 /send-email endpoint called');
     const { to, subject, html } = req.body;
+    console.log('📧 Request data:', { to, subject, html: html ? 'HTML content present' : 'No HTML' });
 
     // Validate required fields
     if (!to || !subject || !html) {
+      console.log('❌ Validation failed:', { to: !!to, subject: !!subject, html: !!html });
       return res.status(400).json({ error: 'Missing required fields: to, subject, html' });
     }
 
+    console.log('📧 Sending email...');
     // Send email using simple configuration
     const result = await sendEmail(to, subject, html);
+    console.log('📧 Email sent successfully:', result);
 
     return res.status(200).json({
       success: true,
@@ -191,7 +196,8 @@ app.post('/send-email', async (req, res) => {
       message: 'Email sent successfully',
     });
   } catch (error) {
-    console.error('Email sending error:', error.message);
+    console.error('❌ Email sending error:', error.message);
+    console.error('❌ Error stack:', error.stack);
     return res.status(500).json({
       error: 'Failed to send email',
       details: error.message

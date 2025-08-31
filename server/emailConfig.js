@@ -27,6 +27,9 @@ const testEmailConfig = async () => {
 // Send email function
 const sendEmail = async (to, subject, html) => {
   try {
+    console.log('📧 emailConfig: Starting to send email');
+    console.log('📧 emailConfig: Using credentials for:', emailConfig.auth.user);
+    
     const mailOptions = {
       from: {
         name: 'District Magistrate Office, Ayodhya',
@@ -37,11 +40,13 @@ const sendEmail = async (to, subject, html) => {
       html: html
     };
 
+    console.log('📧 emailConfig: Mail options prepared, sending...');
     const info = await transporter.sendMail(mailOptions);
-    console.log('📧 Email sent successfully:', info.messageId);
+    console.log('📧 emailConfig: Email sent successfully:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('❌ Email sending failed:', error.message);
+    console.error('❌ emailConfig: Email sending failed:', error.message);
+    console.error('❌ emailConfig: Full error:', error);
     throw error;
   }
 };
