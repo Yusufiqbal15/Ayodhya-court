@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const { sendEmail, testEmailConfig } = require('./emailConfig');
 const { ObjectId } = require('mongodb');
 
 const app = express();
@@ -14,52 +14,20 @@ app.use(cors());
 
 app.use(express.json());
 
-// Prepare a reusable mail transporter (configure via environment variables)
-// Required envs: GMAIL_USER, GMAIL_APP_PASSWORD
-const mailTransporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER || '',
-    pass: process.env.GMAIL_APP_PASSWORD || '',
-  },
-});
-
-async function sendMail({ to, subject, html }) {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    const msg = 'Email credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.';
-    const err = new Error(msg);
-    err.code = 'EMAIL_CONFIG_MISSING';
-    throw err;
-  }
-  const mailOptions = {
-    from: {
-      name: 'District Magistrate Office, Ayodhya',
-      address: process.env.GMAIL_USER,
-    },
-    to,
-    subject,
-    html,
-  };
-  return mailTransporter.sendMail(mailOptions);
-}
-
-// Quick email configuration status endpoint
-app.get('/email-config/status', async (req, res) => {
+// Test email configuration endpoint
+app.get('/email-config/test', async (req, res) => {
   try {
-    const hasUser = !!process.env.GMAIL_USER;
-    const hasPass = !!process.env.GMAIL_APP_PASSWORD;
-    if (!hasUser || !hasPass) {
-      return res.status(200).json({ configured: false, hasUser, hasPass });
-    }
-    // Optional transporter verification (may fail on some hosts but useful if available)
-    try {
-      await mailTransporter.verify();
-      return res.status(200).json({ configured: true, verified: true });
-    } catch (e) {
-      return res.status(200).json({ configured: true, verified: false, reason: e && e.message });
-    }
-  } catch (e) {
-    return res.status(500).json({ configured: false, error: e && e.message });
+    const isValid = await testEmailConfig();
+    res.json({ 
+      configured: true, 
+      valid: isValid,
+      message: isValid ? 'Email configuration is working' : 'Email configuration has issues'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      configured: false, 
+      error: error.message 
+    });
   }
 });
 
@@ -214,8 +182,8 @@ app.post('/send-email', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: to, subject, html' });
     }
 
-    // Send using reusable transporter with env credentials
-    const info = await sendMail({ to, subject, html });
+    // Send email using simple configuration
+    const result = await sendEmail(to, subject, html);
 
     return res.status(200).json({
       success: true,
@@ -664,11 +632,11 @@ app.post('/email-reminders', async (req, res) => {
     `;
 
     try {
-      const info = await sendMail({ to: email, subject, html });
-      console.log(`Email reminder sent for case ${caseId} to ${email} messageId=${info && info.messageId}`);
+      const result = await sendEmail(email, subject, html);
+      console.log(`Email reminder sent for case ${caseId} to ${email} messageId=${result && result.messageId}`);
     } catch (mailErr) {
-      console.error('Failed to send email via transporter:', mailErr && mailErr.message);
-      return res.status(500).json({ error: 'Failed to send email via transporter', details: mailErr && mailErr.message });
+      console.error('Failed to send email:', mailErr && mailErr.message);
+      return res.status(500).json({ error: 'Failed to send email', details: mailErr && mailErr.message });
     }
     
     res.status(201).json({
