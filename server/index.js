@@ -187,15 +187,15 @@ app.post('/send-email', async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      messageId: info.messageId,
+      messageId: result.messageId,
       message: 'Email sent successfully',
     });
   } catch (error) {
-    console.error('Email sending error:', error && error.message);
-    const message = error && error.message ? error.message : 'Failed to send email';
-    const code = error && error.code ? error.code : 'EMAIL_SEND_FAILED';
-    const status = code === 'EMAIL_CONFIG_MISSING' ? 400 : 500;
-    return res.status(status).json({ error: message, code });
+    console.error('Email sending error:', error.message);
+    return res.status(500).json({
+      error: 'Failed to send email',
+      details: error.message
+    });
   }
 });
 // Update case
