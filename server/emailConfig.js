@@ -4,13 +4,17 @@ const nodemailer = require('nodemailer');
 const emailConfig = {
   service: 'gmail',
   auth: {
-    user: 'jrkwrit53@gmail.com', // Your Gmail address
-    pass: 'bqvd jtyv dilm pnnr'  // Your Gmail App Password
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD
   }
 };
 
+if (!emailConfig.auth.user || !emailConfig.auth.pass) {
+  throw new Error('Email credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD.');
+}
+
 // Create transporter
-const transporter = nodemailer.createTransporter(emailConfig);
+const transporter = nodemailer.createTransport(emailConfig);
 
 // Test email configuration
 const testEmailConfig = async () => {
