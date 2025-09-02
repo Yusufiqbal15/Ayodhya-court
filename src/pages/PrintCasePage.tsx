@@ -6,17 +6,17 @@ import CourtNoticeWriter from '@/components/NoticeWriter';
 
 const PrintCasePage: React.FC = () => {
   const { currentLang, isLoggedIn, toggleLanguage } = useApp();
-  const { id } = useParams<{ id: string }>();
+  const { subDepartmentId } = useParams<{ subDepartmentId: string }>();
   
   useEffect(() => {
     // Debug log
-    console.log('Printing case with ID:', id);
-  }, [id]);
+    console.log('Printing case with subDepartment ID:', subDepartmentId);
+  }, [subDepartmentId]);
 
   return (
     <>
       <Header isLoggedIn={isLoggedIn} currentLang={currentLang} toggleLanguage={toggleLanguage} />
-      <CourtNoticeWriter caseId={id} />
+      <CourtNoticeWriter caseId={subDepartmentId} />
     </>
   );
 }
