@@ -111,8 +111,7 @@ git add .
 git commit -m "Enable real email sending"
 git push origin main
 
-# Test after deployment
-curl -X POST https://ayodhya-court-br1u.vercel.app/send-email-working \
+# Test after https://ayodhya-court-br1u.vercel.app/send-email-working \
   -H "Content-Type: application/json" \
   -d '{"to":"test@example.com","subject":"Test","html":"<h1>Test</h1>"}'
 ```

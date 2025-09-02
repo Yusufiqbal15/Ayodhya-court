@@ -133,17 +133,17 @@ export default function CourtNoticeWriter({ caseId }: NoticeWriterProps) {
       let response;
       try {
         response = await fetch(`${API_BASE}/send-email-working`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            to: recipientEmail,
-            subject: `${language === "hi" ? "न्यायालयी नोटिस" : "Court Notice"} - ${noticeData.subject}`,
-            html: emailHtml,
-            noticeData: noticeData,
-          }),
-        })
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: recipientEmail,
+          subject: `${language === "hi" ? "न्यायालयी नोटिस" : "Court Notice"} - ${noticeData.subject}`,
+          html: emailHtml,
+          noticeData: noticeData,
+        }),
+      })
       } catch (error) {
         // Fallback to main endpoint
         console.log('Working endpoint failed, trying main endpoint...');
