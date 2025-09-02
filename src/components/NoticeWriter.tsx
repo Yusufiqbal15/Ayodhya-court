@@ -49,7 +49,7 @@ interface NoticeWriterProps {
   caseId?: string;
 }
 
-const API_BASE = (import.meta as any)?.env?.VITE_API_BASE || "https://ayodhya-court-zjs5.vercel.app"
+const API_BASE = (import.meta as any)?.env?.VITE_API_BASE || "https://ayodhya-court-main.onrender.com"
 
 const printStyles = `
   @media print {
