@@ -51,7 +51,7 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Base URL for API calls
 // In development, Vite proxy handles "/api" -> localhost. In production, use full backend URL.
-const API_BASE = (import.meta as any)?.env?.VITE_API_BASE || 'https://ayodhya-court-main.onrender.com';
+const API_BASE = (import.meta as any)?.env?.VITE_API_BASE || 'https://ayodhya-court-zjs5.vercel.app';
 const API_BASE_LOCAL = 'http://localhost:5000';
 const API_TIMEOUT = 3000; // 3 seconds
 

@@ -24,7 +24,7 @@ const logError = (message: string, error: unknown) => {
 };
 
 const API = axios.create({
-    baseURL: (import.meta as any)?.env?.VITE_API_BASE || 'https://ayodhya-court-main.onrender.com',
+    baseURL: (import.meta as any)?.env?.VITE_API_BASE || 'https://ayodhya-court-zjs5.vercel.app',
     headers: {
         'Content-Type': 'application/json'
     }
